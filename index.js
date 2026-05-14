@@ -8,7 +8,7 @@ const port = process.env.PORT;
 // middleware
 app.use(express.json())
 app.use(cors({
-    origin: ['https://client-bdbook.vercel.app', 'http://localhost:3000'],
+    origin: ['https://www.moshiurrahman.online', 'http://localhost:3000'],
 }));
 
 
