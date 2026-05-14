@@ -32,15 +32,29 @@ const storage = new CloudinaryStorage({
     }
 });
 
-// Multer upload middleware
+// Multer upload middleware with dynamic limits
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024 // 100MB for video, 5MB for image
+        fileSize: 100 * 1024 * 1024 // Default maximum 100MB (for videos)
     },
     fileFilter: (req, file, cb) => {
+        const isVideo = file.mimetype.startsWith('video/');
+        const isImage = file.mimetype.startsWith('image/');
+        
         const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         const allowedVideoTypes = ['video/mp4', 'video/mov', 'video/avi', 'video/mkv'];
+        
+        // Check file size based on type
+        if (isImage && req.headers['content-length'] > 5 * 1024 * 1024) {
+            cb(new Error('Image file size must be less than 5MB!'), false);
+            return;
+        }
+        
+        if (isVideo && req.headers['content-length'] > 100 * 1024 * 1024) {
+            cb(new Error('Video file size must be less than 100MB!'), false);
+            return;
+        }
         
         if (allowedImageTypes.includes(file.mimetype) || allowedVideoTypes.includes(file.mimetype)) {
             cb(null, true);

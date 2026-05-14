@@ -8,13 +8,14 @@ const port = process.env.PORT;
 // middleware
 app.use(express.json())
 app.use(cors({
-  origin: ['https://client-bdbook.vercel.app','http://localhost:3000'],
+    origin: ['https://client-bdbook.vercel.app', 'http://localhost:3000'],
 }));
 
 
 // import routes
 import { connectDB } from "./database/db.js";
 import contact from "./routes/contactRoutes/contact.js";
+import blogsRoute from "./routes/blogRoutes/blogs.js";
 
 
 await connectDB();
@@ -22,6 +23,7 @@ await connectDB();
 
 // apis
 app.use("/api/contacts", contact)
+app.use("/api/blogs", blogsRoute)
 
 app.get("/", (req, res) => {
     res.send("Moshiur.dev server is running rapidly")
