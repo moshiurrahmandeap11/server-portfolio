@@ -98,7 +98,7 @@ router.post("/", async (req, res) => {
         const result = await db.collection("contacts").insertOne(newContact);
         
         // Send auto-reply email to the user (don't await to avoid delay)
-        sendAutoReplyEmail(newContact.email, newContact.name)
+        sendAutoReplyEmail(newContact.email, newContact.name, newContact.message)
             .then(() => console.log("Auto-reply sent successfully"))
             .catch((err) => console.error("Failed to send auto-reply:", err));
         

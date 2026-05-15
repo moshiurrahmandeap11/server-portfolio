@@ -1,0 +1,109 @@
+{
+    "name": "Moshiur Rahman Deap",
+    "title": "Software Engineer",
+    "location": "Bangladesh",
+    "website": "https://moshiurrahman.online",
+    "email": "moshiurrahmandeap@gmail.com",
+    "phone": "01409-063324",
+    "bio": "Full-stack developer passionate about creating beautiful, functional web applications. Experienced in React, Next.js, Node.js, Express, MongoDB, and modern JavaScript/TypeScript ecosystem.",
+    "skills": {
+        "frontend": [
+            "React",
+            "Next.js",
+            "TypeScript",
+            "Tailwind CSS",
+            "Redux",
+            "Framer Motion"
+        ],
+        "backend": [
+            "Node.js",
+            "Express",
+            "MongoDB",
+            "REST APIs",
+            "PostgreSQL"
+        ],
+        "tools": [
+            "Git",
+            "GitHub",
+            "Docker",
+            "Firebase",
+            "Vercel",
+            "Netlify",
+            "AWS"
+        ],
+        "languages": [
+            "English (Professional)",
+            "Hindi (Conversational)",
+            "Bengali (Native)"
+        ]
+    },
+    "experience": [
+        {
+            "role": "Software Engineer",
+            "company": "Self Employeed",
+            "period": "2026 - Present",
+            "description": "Building full-stack web applications using Next.js, Node.js, and MongoDB"
+        },
+        {
+            "role": "Web Developer",
+            "company": "Projukti Sheba",
+            "period": "2025-2026",
+            "description": "Developed responsive web applications with React and Node.js"
+        }
+    ],
+    "education": {
+        "degree": "Full Stack Web Developer",
+        "institution": "Programming Hero",
+        "year": "2024-2025"
+    },
+    "projects": [
+        {
+            "name": "Portfolio Website",
+            "description": "Personal portfolio showcasing projects and skills",
+            "technologies": [
+                "Next.js",
+                "TypeScript",
+                "Tailwind CSS",
+                "MongoDB"
+            ],
+            "url": "https://moshiurrahman.online"
+        },
+        {
+            "name": "Blog Platform",
+            "description": "Full-stack blog platform with admin panel",
+            "technologies": [
+                "Next.js",
+                "Express",
+                "MongoDB",
+                "Cloudinary"
+            ],
+            "url": "https://moshiurrahman.online/blogs"
+        }
+    ],
+    "social": {
+        "linkedin": "https://www.linkedin.com/in/moshiurrahmandeap",
+        "github": "https://github.com/moshiurrahmandeap11",
+        "resume": "https://drive.google.com/file/d/19p_u9kKiwGwYhAE3g4YtbtM8CDgqCAym/view?usp=drive_link"
+    },
+    "availability": {
+        "freelance": true,
+        "fullTime": true,
+        "responseTime": "2-4 hours",
+        "timezone": "Asia/Dhaka (GMT+6)"
+    },
+    "services": [
+        "Full-stack Web Development",
+        "Frontend Development with React/Next.js",
+        "Backend API Development",
+        "Website Maintenance & Optimization",
+        "Technical Consultation"
+    ],
+    "preferences": {
+        "contactMethod": "Email preferred, LinkedIn for professional inquiries",
+        "languages": [
+            "Bengali (Native)",
+            "English (Professional)",
+            "Hindi (Conversational)"
+        ]
+    }
+}
