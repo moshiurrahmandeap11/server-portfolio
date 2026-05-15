@@ -16,6 +16,7 @@ app.use(cors({
 import { connectDB } from "./database/db.js";
 import contact from "./routes/contactRoutes/contact.js";
 import blogsRoute from "./routes/blogRoutes/blogs.js";
+import profileRoute from "./routes/profileRoutes/profile.js";
 
 
 await connectDB();
@@ -24,6 +25,7 @@ await connectDB();
 // apis
 app.use("/api/contacts", contact)
 app.use("/api/blogs", blogsRoute)
+app.use("/api/profile", profileRoute);
 
 app.get("/", (req, res) => {
     res.send("Moshiur.dev server is running rapidly")
