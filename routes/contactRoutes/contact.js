@@ -1,13 +1,11 @@
 import { Router } from "express";
 import { db } from "../../database/db.js";
-
+import { sendAutoReplyEmail, sendNotificationEmail } from "../../config/nodemailer.js";
 
 const router = Router();
 
-
 router.get("/", async (req, res) => {
     try {
-
         const contacts = await db.collection("contacts").find({}).sort({ createdAt: -1 }).toArray();
         
         res.status(200).json({
@@ -25,10 +23,8 @@ router.get("/", async (req, res) => {
     }
 });
 
-
 router.get("/:id", async (req, res) => {
     try {
-
         const { ObjectId } = await import('mongodb');
         const contact = await db.collection("contacts").findOne({ _id: new ObjectId(req.params.id) });
         
@@ -52,7 +48,6 @@ router.get("/:id", async (req, res) => {
         });
     }
 });
-
 
 router.post("/", async (req, res) => {
     try {
@@ -90,7 +85,6 @@ router.post("/", async (req, res) => {
                 message: "Message must be at least 10 characters long"
             });
         }
-        
 
         const newContact = {
             name: name.trim(),
@@ -103,9 +97,19 @@ router.post("/", async (req, res) => {
         
         const result = await db.collection("contacts").insertOne(newContact);
         
+        // Send auto-reply email to the user (don't await to avoid delay)
+        sendAutoReplyEmail(newContact.email, newContact.name)
+            .then(() => console.log("Auto-reply sent successfully"))
+            .catch((err) => console.error("Failed to send auto-reply:", err));
+        
+        // Send notification email to yourself (don't await to avoid delay)
+        sendNotificationEmail(newContact)
+            .then(() => console.log("Notification sent successfully"))
+            .catch((err) => console.error("Failed to send notification:", err));
+        
         res.status(201).json({
             success: true,
-            message: "Message sent successfully",
+            message: "Message sent successfully! Check your email for a confirmation.",
             data: {
                 id: result.insertedId,
                 name: newContact.name,
@@ -124,11 +128,9 @@ router.post("/", async (req, res) => {
     }
 });
 
-
 router.put("/:id", async (req, res) => {
     try {
         const { isRead } = req.body;
-
         const { ObjectId } = await import('mongodb');
         
         const updateData = {
@@ -165,10 +167,8 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-
 router.delete("/:id", async (req, res) => {
     try {
-
         const { ObjectId } = await import('mongodb');
         
         const result = await db.collection("contacts").deleteOne({ _id: new ObjectId(req.params.id) });
@@ -194,10 +194,8 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-
 router.patch("/:id/read", async (req, res) => {
     try {
-
         const { ObjectId } = await import('mongodb');
         
         const result = await db.collection("contacts").updateOne(
