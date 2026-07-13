@@ -1,26 +1,8 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { generateAIReply } from "./aiReply.js";
 
-// Create transporter
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
-
-// Verify transporter connection
-transporter.verify((error, success) => {
-    if (error) {
-        console.error("Email transporter error:", error);
-    } else {
-        console.log("Email server is ready to send messages");
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+const fromEmail = process.env.FROM_EMAIL || "contact@moshiurrahman.online";
 
 // Send auto-reply to the contact (with AI or fallback)
 export const sendAutoReplyEmail = async (to, name, message) => {
@@ -59,16 +41,20 @@ export const sendAutoReplyEmail = async (to, name, message) => {
             ? `Re: Your Message - Moshiur Rahman `
             : "Thank You for Contacting Me! ";
 
-        const mailOptions = {
-            from: `"noreply" <${process.env.EMAIL_USER}>`,
+        const { data, error } = await resend.emails.send({
+            from: `"Moshiur Rahman" <${fromEmail}>`,
             to: to,
             subject: subject,
             html: htmlContent,
-        };
+        });
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log(` Auto-reply email sent (AI: ${usedAI}):`, info.messageId);
-        return info;
+        if (error) {
+            console.error(" Resend auto-reply error:", error);
+            throw new Error(error.message);
+        }
+
+        console.log(` Auto-reply email sent (AI: ${usedAI}):`, data?.id);
+        return data;
     } catch (error) {
         console.error(" Error sending auto-reply email:", error);
         throw error;
@@ -141,9 +127,9 @@ const getFallbackTemplate = (name) => {
 // Send notification to yourself
 export const sendNotificationEmail = async (contactData) => {
     try {
-        const mailOptions = {
-            from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
-            to: process.env.PERSONAL_EMAIL || process.env.EMAIL_USER,
+        const { data, error } = await resend.emails.send({
+            from: `"Portfolio Contact" <${fromEmail}>`,
+            to: process.env.PERSONAL_EMAIL || fromEmail,
             subject: ` New Contact Message from ${contactData.name}`,
             html: `
                 <!DOCTYPE html>
@@ -206,15 +192,19 @@ export const sendNotificationEmail = async (contactData) => {
                 </body>
                 </html>
             `,
-        };
+        });
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Notification email sent:", info.messageId);
-        return info;
+        if (error) {
+            console.error(" Resend notification error:", error);
+            throw new Error(error.message);
+        }
+
+        console.log("Notification email sent:", data?.id);
+        return data;
     } catch (error) {
         console.error("Error sending notification email:", error);
         throw error;
     }
 };
 
-export default transporter;
+export default resend;

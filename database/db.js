@@ -1,6 +1,10 @@
 import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
 dotenv.config();
+
+import dns from "dns";
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 let client;
 let db;
 
