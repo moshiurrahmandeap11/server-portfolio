@@ -36,7 +36,10 @@ const storage = new CloudinaryStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 100 * 1024 * 1024 // Default maximum 100MB (for videos)
+        fileSize: 100 * 1024 * 1024, // Default maximum 100MB (for videos)
+        fieldSize: 10 * 1024 * 1024, // 10MB for text fields (HTML content from Quill)
+        fields: 20, // Max number of non-file fields
+        files: 2, // Max number of file fields
     },
     fileFilter: (req, file, cb) => {
         const isVideo = file.mimetype.startsWith('video/');
