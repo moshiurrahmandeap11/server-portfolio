@@ -17,6 +17,7 @@ app.use(cors({
 import { connectDB } from "./database/db.js";
 import contact from "./routes/contactRoutes/contact.js";
 import blogsRoute from "./routes/blogRoutes/blogs.js";
+import projectsRoute from "./routes/projectRoutes/projects.js";
 import profileRoute from "./routes/profileRoutes/profile.js";
 
 
@@ -26,6 +27,7 @@ await connectDB();
 // apis
 app.use("/api/contacts", contact)
 app.use("/api/blogs", blogsRoute)
+app.use("/api/projects", projectsRoute)
 app.use("/api/profile", profileRoute);
 
 app.get("/", (req, res) => {
