@@ -82,17 +82,11 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    const cacheKey = `${BLOG_DETAIL_CACHE_PREFIX}:${id}`;
-
-    // Try cache first
-    const cached = await getCache(cacheKey);
-    if (cached) {
-      return res.status(200).json({
-        success: true,
-        message: "Blog fetched successfully (cached)",
-        data: cached,
-      });
-    }
+    // Atomically increment views count in DB
+    await db.collection("blogs").updateOne(
+      { _id: new ObjectId(id) },
+      { $inc: { views: 1 } }
+    );
 
     const blog = await db
       .collection("blogs")
@@ -105,18 +99,90 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    // Store in cache
-    await setCache(cacheKey, blog, DEFAULT_CACHE_TTL);
+    const blogData = {
+      ...blog,
+      views: blog.views || 0,
+      likes: blog.likes || 0,
+    };
 
     res.status(200).json({
       success: true,
       message: "Blog fetched successfully",
-      data: blog,
+      data: blogData,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Error fetching blog",
+      error: error.message,
+    });
+  }
+});
+
+// POST increment blog view count
+router.post("/:id/view", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid blog ID format" });
+    }
+
+    await db.collection("blogs").updateOne(
+      { _id: new ObjectId(id) },
+      { $inc: { views: 1 } }
+    );
+
+    const blog = await db.collection("blogs").findOne({ _id: new ObjectId(id) });
+    await deleteCache(`${BLOG_DETAIL_CACHE_PREFIX}:${id}`);
+    await deleteCachePattern(`${BLOGS_LIST_CACHE_PREFIX}:*`);
+
+    res.status(200).json({
+      success: true,
+      message: "View count updated",
+      views: blog?.views || 0,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating view count",
+      error: error.message,
+    });
+  }
+});
+
+// POST toggle / increment blog like count
+router.post("/:id/like", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // 'like' or 'unlike'
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid blog ID format" });
+    }
+
+    const increment = action === "unlike" ? -1 : 1;
+
+    await db.collection("blogs").updateOne(
+      { _id: new ObjectId(id) },
+      { $inc: { likes: increment } }
+    );
+
+    const blog = await db.collection("blogs").findOne({ _id: new ObjectId(id) });
+    const currentLikes = Math.max(0, blog?.likes || 0);
+
+    // Invalidate caches
+    await deleteCache(`${BLOG_DETAIL_CACHE_PREFIX}:${id}`);
+    await deleteCachePattern(`${BLOGS_LIST_CACHE_PREFIX}:*`);
+
+    res.status(200).json({
+      success: true,
+      message: action === "unlike" ? "Unliked blog" : "Liked blog",
+      likes: currentLikes,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error liking blog",
       error: error.message,
     });
   }
@@ -173,6 +239,8 @@ router.post(
         description: description || content.substring(0, 150), // Auto description if not provided
         thumbnail: thumbnailData,
         media: mediaData,
+        views: 0,
+        likes: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
