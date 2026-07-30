@@ -1,10 +1,13 @@
 import { Router } from "express";
 import { db } from "../../database/db.js";
 import { sendAutoReplyEmail, sendNotificationEmail } from "../../config/nodemailer.js";
+import { strictLimiter } from "../../middleware/rateLimiter.js";
+import { validate } from "../../middleware/validate.js";
+import { contactSchema } from "../../validations/schemas.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
     try {
         const contacts = await db.collection("contacts").find({}).sort({ createdAt: -1 }).toArray();
         
@@ -14,16 +17,11 @@ router.get("/", async (req, res) => {
             data: contacts
         });
     } catch (error) {
-        console.error("Error fetching contacts:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch contacts",
-            error: error.message
-        });
+        next(error);
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
     try {
         const { ObjectId } = await import('mongodb');
         const contact = await db.collection("contacts").findOne({ _id: new ObjectId(req.params.id) });
@@ -40,51 +38,13 @@ router.get("/:id", async (req, res) => {
             data: contact
         });
     } catch (error) {
-        console.error("Error fetching contact:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch contact",
-            error: error.message
-        });
+        next(error);
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", strictLimiter, validate(contactSchema), async (req, res, next) => {
     try {
         const { name, email, message } = req.body;
-        
-        // Validation
-        if (!name || !email || !message) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide name, email and message"
-            });
-        }
-        
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a valid email address"
-            });
-        }
-        
-        // Name validation (minimum 2 characters)
-        if (name.length < 2) {
-            return res.status(400).json({
-                success: false,
-                message: "Name must be at least 2 characters long"
-            });
-        }
-        
-        // Message validation (minimum 10 characters)
-        if (message.length < 10) {
-            return res.status(400).json({
-                success: false,
-                message: "Message must be at least 10 characters long"
-            });
-        }
 
         const newContact = {
             name: name.trim(),
@@ -119,16 +79,11 @@ router.post("/", async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Error creating contact:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to send message",
-            error: error.message
-        });
+        next(error);
     }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req, res, next) => {
     try {
         const { isRead } = req.body;
         const { ObjectId } = await import('mongodb');
@@ -158,16 +113,11 @@ router.put("/:id", async (req, res) => {
             message: "Message updated successfully"
         });
     } catch (error) {
-        console.error("Error updating contact:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to update message",
-            error: error.message
-        });
+        next(error);
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res, next) => {
     try {
         const { ObjectId } = await import('mongodb');
         
@@ -185,16 +135,11 @@ router.delete("/:id", async (req, res) => {
             message: "Message deleted successfully"
         });
     } catch (error) {
-        console.error("Error deleting contact:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to delete message",
-            error: error.message
-        });
+        next(error);
     }
 });
 
-router.patch("/:id/read", async (req, res) => {
+router.patch("/:id/read", async (req, res, next) => {
     try {
         const { ObjectId } = await import('mongodb');
         
@@ -220,12 +165,7 @@ router.patch("/:id/read", async (req, res) => {
             message: "Message marked as read"
         });
     } catch (error) {
-        console.error("Error marking as read:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to mark as read",
-            error: error.message
-        });
+        next(error);
     }
 });
 

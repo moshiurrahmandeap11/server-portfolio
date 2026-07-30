@@ -5,7 +5,7 @@ import { db } from "../../database/db.js";
 const router = Router();
 
 // GET profile
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
     try {
         const profile = await db.collection("profile").findOne({});
         
@@ -21,19 +21,14 @@ router.get("/", async (req, res) => {
             data: profile
         });
     } catch (error) {
-        console.error("Error fetching profile:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch profile",
-            error: error.message
-        });
-    }
+    next(error);
+  }
 });
 
 // POST - Create profile with profile picture and resume link
 router.post("/", upload.fields([
     { name: "profilePicture", maxCount: 1 }
-]), async (req, res) => {
+]), async (req, res, next) => {
     try {
         // Check if profile already exists
         const existingProfile = await db.collection("profile").findOne({});
@@ -81,19 +76,14 @@ router.post("/", upload.fields([
             data: { ...profile, _id: result.insertedId }
         });
     } catch (error) {
-        console.error("Error creating profile:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to create profile",
-            error: error.message
-        });
-    }
+    next(error);
+  }
 });
 
 // PUT - Update profile picture and/or resume link
 router.put("/", upload.fields([
     { name: "profilePicture", maxCount: 1 }
-]), async (req, res) => {
+]), async (req, res, next) => {
     try {
         const existingProfile = await db.collection("profile").findOne({});
         
@@ -149,17 +139,12 @@ router.put("/", upload.fields([
             data: updatedProfile
         });
     } catch (error) {
-        console.error("Error updating profile:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to update profile",
-            error: error.message
-        });
-    }
+    next(error);
+  }
 });
 
 // DELETE - Remove profile picture only
-router.put("/remove-picture", async (req, res) => {
+router.put("/remove-picture", async (req, res, next) => {
     try {
         const existingProfile = await db.collection("profile").findOne({});
         
@@ -189,17 +174,12 @@ router.put("/remove-picture", async (req, res) => {
             message: "Profile picture removed successfully"
         });
     } catch (error) {
-        console.error("Error removing profile picture:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to remove profile picture",
-            error: error.message
-        });
-    }
+    next(error);
+  }
 });
 
 // DELETE - Remove resume only
-router.put("/remove-resume", async (req, res) => {
+router.put("/remove-resume", async (req, res, next) => {
     try {
         const existingProfile = await db.collection("profile").findOne({});
         
@@ -225,13 +205,8 @@ router.put("/remove-resume", async (req, res) => {
             message: "Resume removed successfully"
         });
     } catch (error) {
-        console.error("Error removing resume:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to remove resume",
-            error: error.message
-        });
-    }
+    next(error);
+  }
 });
 
 export default router;

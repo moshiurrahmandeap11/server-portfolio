@@ -8,6 +8,8 @@ import {
   deleteCache,
   deleteCachePattern,
 } from "../../config/redis.js";
+import { validate } from "../../middleware/validate.js";
+import { blogSchema } from "../../validations/schemas.js";
 
 const router = Router();
 
@@ -16,7 +18,7 @@ const BLOG_DETAIL_CACHE_PREFIX = "blogs:detail";
 const DEFAULT_CACHE_TTL = 300; // 5 minutes
 
 // GET all blogs with limitation
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
@@ -62,16 +64,12 @@ router.get("/", async (req, res) => {
       ...responseData,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error fetching blogs",
-      error: error.message,
-    });
+    next(error);
   }
 });
 
 // GET single blog by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -111,16 +109,12 @@ router.get("/:id", async (req, res) => {
       data: blogData,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error fetching blog",
-      error: error.message,
-    });
+    next(error);
   }
 });
 
 // POST increment blog view count
-router.post("/:id/view", async (req, res) => {
+router.post("/:id/view", async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
@@ -142,16 +136,12 @@ router.post("/:id/view", async (req, res) => {
       views: blog?.views || 0,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error updating view count",
-      error: error.message,
-    });
+    next(error);
   }
 });
 
 // POST toggle / increment blog like count
-router.post("/:id/like", async (req, res) => {
+router.post("/:id/like", async (req, res, next) => {
   try {
     const { id } = req.params;
     const { action } = req.body; // 'like' or 'unlike'
@@ -180,11 +170,7 @@ router.post("/:id/like", async (req, res) => {
       likes: currentLikes,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error liking blog",
-      error: error.message,
-    });
+    next(error);
   }
 });
 
@@ -195,17 +181,10 @@ router.post(
     { name: "thumbnail", maxCount: 1 },
     { name: "media", maxCount: 1 },
   ]),
-  async (req, res) => {
+  validate(blogSchema),
+  async (req, res, next) => {
     try {
       const { title, content, author, description } = req.body;
-
-      // Validation
-      if (!title || !content || !author) {
-        return res.status(400).json({
-          success: false,
-          message: "Title, content and author are required",
-        });
-      }
 
       // Handle thumbnail upload
       let thumbnailData = null;
@@ -256,12 +235,8 @@ router.post(
         data: { ...blog, _id: result.insertedId },
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error creating blog",
-        error: error.message,
-      });
-    }
+    next(error);
+  }
   }
 );
 
@@ -272,7 +247,7 @@ router.put(
     { name: "thumbnail", maxCount: 1 },
     { name: "media", maxCount: 1 },
   ]),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const { id } = req.params;
       const { title, content, author, description } = req.body;
@@ -364,12 +339,8 @@ router.put(
         data: updatedBlog,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error updating blog",
-        error: error.message,
-      });
-    }
+    next(error);
+  }
   }
 );
 
@@ -380,7 +351,7 @@ router.patch(
     { name: "thumbnail", maxCount: 1 },
     { name: "media", maxCount: 1 },
   ]),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const { id } = req.params;
       const updates = req.body;
@@ -469,17 +440,13 @@ router.patch(
         data: updatedBlog,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error updating blog",
-        error: error.message,
-      });
-    }
+    next(error);
+  }
   }
 );
 
 // DELETE blog
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -522,11 +489,7 @@ router.delete("/:id", async (req, res) => {
       message: "Blog deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error deleting blog",
-      error: error.message,
-    });
+    next(error);
   }
 });
 

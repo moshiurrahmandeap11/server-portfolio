@@ -1,9 +1,19 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import helmet from "helmet";
+import { apiLimiter } from "./middleware/rateLimiter.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+
 dotenv.config();
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
+
+// security headers
+app.use(helmet());
+
+// Apply rate limiter to all requests
+app.use(apiLimiter);
 
 // middleware
 app.use(express.json({ limit: '10mb' }));
@@ -31,6 +41,9 @@ app.use("/api/profile", profileRoute);
 app.get("/", (req, res) => {
     res.send("Moshiur.dev server is running rapidly")
 })
+
+// Global Error Handler
+app.use(errorHandler);
 
 app.listen(port, () => {
     console.log(`moshiur server running on port http://localhost:${port}`);
